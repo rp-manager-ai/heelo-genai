@@ -338,9 +338,40 @@ comment activation, incident response, and expansion.
 
 There is no broad conflict between the stated React/Vite, Node/Express, and
 PostgreSQL implementation stack and the reviewed-repository language scope; the
-specification explicitly distinguishes them. The principal implementation
-blockers are the changed-line MUST/SHOULD mismatch, unresolved data and model
-controls, missing configuration and publication contracts, and unmeasured
-quality gates. Resolve C-001 through C-014 before enabling repository analysis;
-resolve C-004, C-012, C-016, and C-022 before enabling inline comments or
-expanding the pilot.
+specification explicitly distinguishes them. The review below records the
+initial draft gaps. Their confirmed dispositions are listed in the register and
+implemented in the prototype decisions section of `spec/specification.md`.
+
+## Confirmed Disposition Register
+
+The project owner selected a disposition for every item. “Detail added” means
+the specification contains the decision; “out of scope” means the prototype
+does not implement that capability. Constitutional requirements remain
+mandatory even where extended controls are out of scope.
+
+- C-001: Detail added; every finding requires a changed-line anchor.
+- C-002: Out of scope; artifacts and dashboards; Check Run summary only.
+- C-003: Detail added; finding schema, enums, confidence, evidence, and key.
+- C-004: Out of scope; automated promotion gate; prototype remains shadow-only.
+- C-005: Out of scope; commerce-specific domain checks.
+- C-006: Detail added; YAML path, schema, precedence, defaults, and fallback.
+- C-007: Out of scope; dependency traversal and unsupported/mixed-file review.
+- C-008: Detail added; event lifecycle, deduplication, and stale-head guard.
+- C-009: Out of scope; durable queue, replay, and fairness guarantees.
+- C-010: Detail added; GitHub App permissions, role, and rate-limit behavior.
+- C-011: Out of scope; custom detection and separate red-team program; baseline
+  constitutional security controls remain mandatory.
+- C-012: Detail added; persistence boundary and retention approval gate.
+- C-013: Out of scope; individual human identity in application audit records.
+- C-014: Detail added; Check Run behavior and future comment contract.
+- C-015: Out of scope; user-facing frontend and operator screens.
+- C-016: Detail added; corpus labeling and metric definitions; no numeric gate.
+- C-017: Out of scope; committed performance and availability SLOs.
+- C-018: Detail added; review states, minimum logs, metrics, and owner role.
+- C-019: Out of scope; advanced backup, restore, and recovery guarantees.
+- C-020: Detail added; versioned internal API and payload contracts.
+- C-021: Out of scope; multi-repository expansion and mixed-language review.
+- C-022: Detail added; role-based approval responsibilities.
+- C-023: Out of scope; branch identifier remains TBD until implementation.
+- C-024: Detail added; owner role and draft approval status.
+- C-025: Detail added; specification and constitution version linkage.
