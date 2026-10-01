@@ -34,6 +34,8 @@
 - **Shadow output:** A non-blocking CI check/artifact is proposed; confirm the preferred visibility with pilot teams.
 - **Operational targets:** The 5-minute p95 review completion and 99.5% monthly availability values in `project_spec.md` are provisional until actual load and service objectives are agreed.
 
+- **Module 19 coding-agent delegation:** Prioritize backlog items that are primarily repository/configuration/documentation work rather than external stakeholder sign-off or provisioning tasks. Best fit: **S-04** (repository YAML contract), **S-08** (service contracts and error semantics), and **S-03** (GitHub App permissions/install policy) as a policy/spec task. Lower fit: **S-01** and **S-07** because they require stakeholder decisions; **S-05** and **S-06** depend on security/privacy approvals or live environment provisioning and are not strong coding-agent candidates.
+
 ## Phase 1: Setup
 
 **Exit criteria:** Pilot scope, security boundaries, service contracts, repository policy format, infrastructure prerequisites, and evaluation method are approved.
