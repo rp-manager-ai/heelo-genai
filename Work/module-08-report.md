@@ -1,6 +1,7 @@
 # Module 08 Completion Report
 
 ## Tracked Files
+
 ```text
 package-lock.json
 package.json
@@ -13,11 +14,13 @@ test/server.test.js
 ```
 
 ## Spec Commit History
+
 ```text
 7524cc9 (HEAD -> main) Add hello-genai app and PR reviewer specification
 ```
 
 ## project_spec.md Contents
+
 ````markdown
 # Project Specification: Project- and Domain-Specific PR Reviewer
 

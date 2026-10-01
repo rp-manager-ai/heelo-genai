@@ -1,6 +1,7 @@
 # Module 12 Completion Report
 
 ## Instruction File
+
 - Filename: instructions/use-github-pr-api.agent.md
 
 ```markdown
@@ -17,6 +18,7 @@
 ```
 
 ## Script File
+
 - Filename: tools/github_pr_api.py
 - Language: Python
 
@@ -118,6 +120,7 @@ if __name__ == "__main__":
 ```
 
 ## Script Execution Output
+
 ```text
 usage: github_pr_api.py [-h] [--api-url API_URL] [--page-size PAGE_SIZE]
                         [--max-pages MAX_PAGES] [--output OUTPUT]

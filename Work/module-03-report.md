@@ -1,10 +1,12 @@
 # Module 03 Completion Report
 
 ## Git Identity
+
 - Name: Ravi Prakash
 - Email: ravi_prakash@epam.com
 
 ## Commit History
+
 ```text
 3299006 (HEAD -> main) Add calculator demo output test
  .gitignore   | 19 +++++++++++++++++++
@@ -23,9 +25,11 @@ f1be4bb Refactor calculator operations into class
 ```
 
 ## Commit Count
+
 3
 
 ## .gitignore Contents
+
 ```gitignore
 .env
 
@@ -49,6 +53,7 @@ dist/
 ```
 
 ## Tracked Files
+
 ```text
 .gitignore
 README.md
@@ -58,6 +63,7 @@ test_main.py
 ```
 
 ## Working Tree Status
+
 ```text
 clean
 ```

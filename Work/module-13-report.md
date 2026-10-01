@@ -1,6 +1,7 @@
 # Module 13 Completion Report
 
 ## MCP Configuration
+
 Filename: `.vscode/mcp.json`
 
 ```json
@@ -20,12 +21,15 @@ Filename: `.vscode/mcp.json`
 ```
 
 ## Configured Servers
+
 - echoPowerShell
 - atlassian
 
 ## MCP Tool Test
+
 - Tool used: `echo` (server: `echoPowerShell`)
 - Output:
+
 ```json
 {"result":{"isError":false,"content":[{"text":"Module 13 echo MCP test","type":"text"}]},"id":2,"jsonrpc":"2.0"}
 ```

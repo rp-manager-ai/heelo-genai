@@ -1,6 +1,7 @@
 # Module 10 Completion Report
 
 ## Instruction Files
+
 ```text
 instructions/create-status-report.agent.md
 instructions/creating-instructions.agent.md
@@ -9,6 +10,7 @@ instructions/main.agent.md
 ```
 
 ## main.agent.md Contents
+
 ```markdown
 # Instructions Catalog
 
@@ -23,8 +25,10 @@ Each entry links to a focused project instruction. Load the linked file complete
 ```
 
 ## Sample Instruction
+
 - File: instructions/identify-repeated-task-patterns.agent.md
 - Contents:
+
 ```text
 - **Input format:** Accept a Markdown backlog or an explicit path to one. Read the complete source, including task IDs, phase headings, descriptions, dependencies, and status markers. If the source is missing or inaccessible, ask for it instead of inferring tasks.
 - **Processing:** Extract each task's action, target, outcome, phase, dependencies, and status; normalize wording while preserving meaning.
