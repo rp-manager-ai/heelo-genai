@@ -1,0 +1,445 @@
+# Feature Specification: Project- and Domain-Specific PR Reviewer
+
+**Feature Branch**: `TBD`
+**Created**: 2026-10-02
+**Status**: Draft
+**Input**: `project_spec.md` and `spec/constitution.md`
+
+## Summary
+
+Build an AI-assisted pull request reviewer for a consumer-facing distributed
+commerce platform and an engineering organization of approximately 100 people.
+The service analyzes pull requests using code, repository policy, architecture
+documents, and API contracts. It reports concise, evidence-backed risks to
+authors and reviewers while leaving all review and merge decisions to people.
+
+The initial release targets GitHub Enterprise Cloud. It starts in shadow mode
+for selected teams, then may publish inline comments after quality and security
+owners approve the measured results.
+
+## Users and Stakeholders
+
+- **Pull request authors** need early, actionable feedback while developing a
+  change.
+- **Human reviewers** need focused risk signals and remain responsible for
+  review decisions.
+- **Platform and CI teams** install, configure, integrate, operate, and monitor
+  the service.
+- **Security and privacy owners** approve data handling, access, and activation
+  controls.
+- **Domain owners** define authoritative commerce invariants and adjudicate
+  domain-specific findings.
+- **Delivery leadership** evaluates pilot outcomes without using findings as
+  individual performance measures.
+
+## Scope
+
+### In Scope
+
+- GitHub Enterprise Cloud pull-request events and a non-blocking CI/check
+  workflow.
+- Repository-specific YAML policy, architecture decision records (ADRs), API
+  schemas/contracts, and bounded affected-dependency context.
+- Risk analysis for security, privacy, distributed reliability, material
+  maintainability, test coverage, and operability.
+- Initial domain focus on orders, refunds, and cancellations.
+- Shadow evaluation followed by an approved, limited inline-comment pilot.
+- Auditing and evaluation of quality, latency, reliability, and developer
+  feedback.
+
+### Out of Scope
+
+- Autonomously approving, rejecting, merging, or blocking pull requests.
+- Editing source code, creating fix commits, or replacing human review, CI,
+  static analysis, or security scanners.
+- General-purpose code generation unrelated to pull-request review.
+- Supporting every language or repository type in the initial release.
+- Treating candidate commerce rules as universal invariants without domain
+  owner confirmation.
+
+## User Scenarios & Testing
+
+### User Story 1 - Secure Repository Enrollment (Priority: P1)
+
+As a platform administrator, I can install the GitHub App only for selected
+organizations and repositories with least-privilege access, so review jobs can
+read authorized pull requests without exposing other repository data.
+
+**Why this priority**: Analysis must not begin unless installation identity,
+repository authorization, and webhook authenticity are trustworthy.
+
+**Independent Test**: Install against a pilot repository, submit a valid signed
+event, then submit invalid-signature and unauthorized-repository events. Verify
+that only the valid authorized event can enqueue work or read source.
+
+**Acceptance Scenarios**:
+
+1. **Given** an authorized installation and repository, **When** a valid
+   supported webhook arrives, **Then** the event is accepted and associated
+   with that installation and repository.
+2. **Given** an invalid webhook signature, **When** the event arrives,
+   **Then** it is rejected and no review job is enqueued.
+3. **Given** a repository outside the installation's authorized scope,
+   **When** an event references it, **Then** no source is accessed and no review
+   job is enqueued.
+
+### User Story 2 - Review a Pull Request Revision (Priority: P1)
+
+As a pull request author, I receive a review for a supported pull-request
+revision that considers the full change and relevant dependencies, so material
+risks are not missed by inspecting changed lines in isolation.
+
+**Why this priority**: Revision-pinned, bounded context collection and reliable
+trigger handling are prerequisites for trustworthy findings.
+
+**Independent Test**: Send opened, reopened, synchronize, and ready-for-review
+events for a test pull request. Verify revision pinning, retry deduplication,
+superseded-revision handling, context limits, and configured path exclusions.
+
+**Acceptance Scenarios**:
+
+1. **Given** a supported pull-request event, **When** it is accepted,
+   **Then** the review is pinned to the event's head commit SHA.
+2. **Given** a retry for the same event and head SHA, **When** it is processed,
+   **Then** it does not create a duplicate review or duplicate findings.
+3. **Given** a newer head SHA supersedes an unfinished review, **When** the
+   older job attempts publication, **Then** stale results are not published as
+   findings for the newer revision.
+4. **Given** configured exclusions or context limits, **When** context is
+   collected, **Then** excluded files are omitted and the review reports any
+   material partial or skipped coverage.
+
+### User Story 3 - Receive Validated Findings (Priority: P1)
+
+As an author or reviewer, I receive concise findings only when they identify a
+concrete risk supported by changed code and trusted project context, so the
+review is useful rather than speculative or noisy.
+
+**Why this priority**: Evidence and location validation are essential to trust
+and safe publication.
+
+**Independent Test**: Evaluate known true-risk, clean, ambiguous, and malformed
+model-output cases. Verify schema, rationale, severity, confidence, changed-line
+location, duplicate suppression, and low-confidence filtering.
+
+**Acceptance Scenarios**:
+
+1. **Given** a candidate with concrete impact and supported changed-line
+   evidence, **When** it passes schema and confidence checks, **Then** it is
+   eligible for the configured result surface.
+2. **Given** a candidate without a defensible location, rationale, severity,
+   confidence, or supporting evidence, **When** validation runs, **Then** it is
+   rejected or withheld.
+3. **Given** uncertain evidence or unavailable context, **When** analysis ends,
+   **Then** the result is marked partial or inconclusive and no unsupported
+   finding is emitted.
+4. **Given** two candidates describing the same issue, **When** findings are
+   normalized, **Then** duplicates are suppressed or represented as one finding.
+
+### User Story 4 - Operate in Shadow Mode (Priority: P1)
+
+As a pilot team, we can inspect and label review results without public inline
+comments or merge impact, so finding quality can be measured before comments
+are enabled.
+
+**Why this priority**: Shadow mode is the required quality and safety gate for
+the rollout.
+
+**Independent Test**: Run a labeled set of historical and synthetic pull
+requests in shadow mode. Verify results appear only in the approved shadow
+surface, do not block CI or merges, and capture evaluation metrics and feedback.
+
+**Acceptance Scenarios**:
+
+1. **Given** shadow mode is enabled, **When** a review completes, **Then** its
+   result is recorded in the approved non-blocking CI/check surface and no
+   inline PR comment is posted.
+2. **Given** a GitHub or model outage, **When** retries are exhausted,
+   **Then** the check reports an observable inconclusive outcome and does not
+   fail or block merge.
+3. **Given** a reviewer labels a finding, **When** evaluation data is recorded,
+   **Then** it can be analyzed by category and severity without treating it as
+   an individual performance measure.
+
+### User Story 5 - Enable Controlled Inline Comments (Priority: P2)
+
+As an authorized pilot owner, I can enable inline comments for selected
+repositories only after agreed quality and security criteria are met, so useful
+findings reach authors without flooding pull requests.
+
+**Why this priority**: Inline publication depends on successful shadow
+evaluation and explicit stakeholder approval.
+
+**Independent Test**: Enable comment mode for one approved repository. Verify
+only above-threshold actionable findings are posted on changed lines, reruns
+update or resolve prior comments idempotently, and unauthorized repositories
+remain in shadow mode.
+
+**Acceptance Scenarios**:
+
+1. **Given** comment mode is enabled for an approved repository, **When** a
+   finding passes publication checks, **Then** a concise inline comment is
+   anchored to a relevant changed line.
+2. **Given** a finding falls below the configured confidence threshold,
+   **When** publication is attempted, **Then** no inline comment is posted.
+3. **Given** the same review is rerun, **When** prior service comments exist,
+   **Then** comments are updated, resolved, or left unchanged without creating
+   duplicates.
+4. **Given** a repository is not approved for comment mode, **When** it is
+   reviewed, **Then** inline comments are not posted.
+
+### User Story 6 - Configure and Audit Reviews (Priority: P1)
+
+As a platform or repository administrator, I can validate versioned review
+policy and inspect an audit trail, so behavior is explainable, reproducible,
+and constrained by organization controls.
+
+**Why this priority**: Invalid policy, untraceable changes, or unsafe overrides
+can undermine security and review consistency.
+
+**Independent Test**: Validate valid, malformed, missing, and policy-violating
+repository configurations. Inspect audit records for configuration changes and
+reviews, confirming required metadata is present and raw source is absent.
+
+**Acceptance Scenarios**:
+
+1. **Given** a valid repository YAML configuration, **When** it is loaded,
+   **Then** it is schema-validated and its version is attached to the review.
+2. **Given** missing or malformed configuration, **When** a review is started,
+   **Then** a clear diagnostic is recorded and safe organization defaults are
+   applied.
+3. **Given** repository configuration attempts to disable a mandatory control
+   or select an unapproved model, **When** validation runs, **Then** the
+   override is rejected.
+4. **Given** a review or configuration change, **When** its audit event is
+   stored, **Then** the required metadata is available to authorized operators
+   without raw source, secrets, or unnecessary PII.
+
+## Functional Requirements
+
+- **FR-001**: The service MUST support GitHub Enterprise Cloud installations
+  scoped to selected organizations and repositories.
+- **FR-002**: The service MUST validate webhook signatures and authorize every
+  event and GitHub operation against its installation and repository.
+- **FR-003**: The service MUST process pull-request opened, reopened,
+  synchronize, and ready-for-review events.
+- **FR-004**: Each review MUST be pinned to a pull-request head SHA. Retries and
+  superseded revisions MUST NOT publish duplicate or stale findings.
+- **FR-005**: The service MUST retrieve the pull-request diff, relevant
+  surrounding files, approved repository guidance, referenced ADRs, API
+  schemas/contracts, and a bounded set of affected dependencies.
+- **FR-006**: Context collection MUST respect configured excluded paths and
+  explicit limits for file size, file count, diff size, and model context.
+- **FR-007**: The service MUST identify changed components and applicable
+  policies before analysis. Domain rules MUST only be applied when supported by
+  repository guidance or available evidence.
+- **FR-008**: The initial reviewed-repository scope MUST focus on
+  TypeScript/Node.js and Terraform, Kubernetes, and Helm definitions.
+- **FR-009**: The initial domain focus MUST include orders, refunds, and
+  cancellations. Candidate checks include refund limits and idempotency, valid
+  order transitions, authorization, cancellation/refund races, cross-service
+  consistency, event delivery assumptions, sensitive-data exposure, contract
+  compatibility, and failure-path tests.
+- **FR-010**: The service MUST use only an approved enterprise model hosted in
+  company cloud or private network infrastructure. Repository content MUST NOT
+  be sent to public model endpoints.
+- **FR-011**: The service MUST redact secrets and configured sensitive data
+  before model requests and send only the minimum context required.
+- **FR-012**: Repository code, comments, documentation, and generated artifacts
+  MUST be treated as untrusted input, not instructions. Model output MUST NOT
+  call tools or expand its permissions.
+- **FR-013**: Model analysis MUST use structured input and output. Candidate
+  findings MUST be schema-validated before publication.
+- **FR-014**: A publishable finding MUST include a stable deduplication key,
+  repository, pull request, commit SHA, file, changed-line range, category,
+  severity, confidence, concise title and rationale, evidence references, and
+  remediation or a focused test when clear.
+- **FR-015**: The validator MUST reject findings lacking a defensible code
+  location, concrete impact, supported rationale, severity, or confidence.
+  Inline locations SHOULD map to changed lines.
+- **FR-016**: The service MUST support shadow and comment modes. Shadow mode
+  MUST publish no inline comments; its exact check/artifact presentation is an
+  open decision for pilot teams.
+- **FR-017**: Comment mode MUST publish only findings above the approved
+  confidence threshold and MUST update or resolve prior service comments
+  idempotently.
+- **FR-018**: The service MUST provide repository opt-out and feedback controls
+  before expanding the comment pilot.
+- **FR-019**: Transient GitHub and model failures MUST use bounded retries and
+  backoff. Exhausted retries or unavailable context MUST produce an observable,
+  partial or inconclusive, non-blocking result.
+- **FR-020**: Review failure MUST NOT fail a required CI check, block merges, or
+  prevent normal delivery in the initial release.
+- **FR-021**: Each repository MUST be able to provide versioned YAML reviewer
+  guidance validated against a published schema.
+- **FR-022**: Missing or invalid configuration MUST produce a clear diagnostic
+  and fall back to safe organization defaults.
+- **FR-023**: Repository configuration MUST NOT disable mandatory organization
+  security controls or select an unapproved model endpoint.
+- **FR-024**: The service MUST record review ID, repository, pull request,
+  revision, triggering event, configuration version, model/version, outcome,
+  timing, and check/comment identifiers as applicable.
+- **FR-025**: Operational logs MUST exclude raw source code, secrets, and
+  unnecessary PII. Audit access MUST be restricted and retention/deletion
+  policy MUST be defined.
+- **FR-026**: The system MUST support evaluation using labeled historical and
+  synthetic pull requests, including clean changes and true-risk cases.
+
+## Non-Functional Requirements
+
+- **NFR-001 Security**: Encrypt data in transit and at rest, isolate jobs by
+  organization/repository, and use managed secret storage for credentials.
+- **NFR-002 Privacy**: Define and test redaction coverage and fail-safe behavior
+  before any model request. Keep source content out of persistent logs by
+  default.
+- **NFR-003 Reliability**: Bound concurrency, execution time, retries, diff
+  size, file count, and context size; identify partial or skipped reviews.
+- **NFR-004 Auditability**: Record source revision, configuration version,
+  prompt/rule version, and model version so review behavior can be explained.
+- **NFR-005 Scale**: Support a pilot organization of approximately 100 people
+  and bursty pull-request traffic through queue-based horizontal scaling.
+- **NFR-006 Performance (provisional)**: Target completion within 5 minutes at
+  the 95th percentile for supported pull requests. Measure by diff size and
+  model latency; validate this target during the pilot.
+- **NFR-007 Availability (provisional)**: Target 99.5% monthly service
+  availability, excluding GitHub and model-provider outages. Validate this
+  target with pilot owners.
+- **NFR-008 Delivery safety**: The reviewer MUST remain advisory and
+  non-blocking in the initial release, including during degraded operation.
+
+## Technology Constraints
+
+- The reviewer web frontend MUST use React 18 with Vite.
+- The service backend MUST use Node.js with Express.
+- Persistent application data MUST use PostgreSQL 15.
+- PostgreSQL MUST run through Docker in local development and in deployment
+  environments that use containers.
+- The reviewed-repository language scope in FR-008 is separate from the
+  implementation stack of this reviewer service.
+
+## Key Entities
+
+- **Installation**: GitHub App identity, authorized organization/repositories,
+  permissions, and installation status.
+- **Pull Request Revision**: Repository, pull-request number, head SHA, base
+  SHA, event, and review status.
+- **Review Job**: Revision-pinned unit of work with deduplication identity,
+  bounded execution state, retries, and outcome.
+- **Repository Policy**: Versioned YAML guidance, enabled categories, path
+  rules, domain invariants, data classifications, thresholds, and mode settings.
+- **Context Source**: Diff/file content or approved guidance, ADR, API contract,
+  and dependency reference used for analysis.
+- **Finding**: Stable key, changed-line location, category, severity,
+  confidence, rationale, evidence, and optional remediation.
+- **Publication**: Shadow check/artifact or inline comment state associated with
+  a validated finding and review revision.
+- **Audit Event**: Review or configuration event with actor/source identity,
+  revision/version, model, outcome, timing, and related GitHub identifiers.
+- **Evaluation Label**: Reviewer feedback used to assess quality by finding
+  category and severity.
+
+## Success Criteria
+
+- **SC-001**: All tested invalid-signature and unauthorized-repository events
+  are rejected before source access or job enqueue.
+- **SC-002**: Repeated delivery of the same event and head SHA creates no
+  duplicate review publication; stale-head findings are not published.
+- **SC-003**: Tests with seeded secrets demonstrate that secrets and configured
+  sensitive values are absent from outbound model payloads and ordinary logs.
+- **SC-004**: Only the approved private enterprise model endpoint receives
+  repository context in security tests.
+- **SC-005**: Every published finding passes schema, evidence, confidence, and
+  changed-line validation; invalid candidates are withheld.
+- **SC-006**: Shadow-mode tests confirm no inline comments and no merge/CI
+  blocking, including exhausted-retry and provider-outage cases.
+- **SC-007**: Comment-mode reruns do not create duplicate service comments, and
+  below-threshold findings are not posted.
+- **SC-008**: Pilot reports precision/actionability, false-positive rate,
+  acceptance/dismissal feedback, valid-line anchoring, latency, reliability,
+  and coverage by category and severity.
+- **SC-009**: Before comment expansion, security, privacy, and domain owners
+  approve the configuration and activation criteria, and shadow results meet
+  the agreed quality threshold.
+- **SC-010**: The provisional 5-minute p95 completion and 99.5% monthly
+  availability targets are measured and accepted, revised, or explicitly
+  deferred by pilot stakeholders.
+
+## Assumptions
+
+- GitHub Enterprise Cloud supports the App, webhook, check, and comment
+  permissions required by the selected pilot configuration.
+- An approved private enterprise model and managed secret service are available
+  before reviews process repository content.
+- Pilot repositories can provide maintainers for YAML policy, domain rules,
+  feedback, and quality adjudication.
+- ADRs, API contracts, and other approved repository context are accessible at
+  the reviewed revision or are explicitly versioned references.
+- The proposed queue/worker architecture is retained to isolate webhook
+  response time from model analysis; queue technology is not selected here.
+
+## Dependencies
+
+- GitHub Enterprise Cloud App registration, installation, webhook, check, and
+  comment capabilities.
+- Approved enterprise model endpoint, model governance, and data-processing
+  terms.
+- Managed secrets service and approved hosting/network boundary.
+- Repository YAML schema, organization defaults, and configuration ownership.
+- Domain-owner decisions for order, refund, cancellation, payment, and event
+  invariants.
+- Labeled historical and synthetic pull requests and reviewer feedback process.
+- CI integration and pilot agreement on the shadow result surface.
+
+## Risks and Open Decisions
+
+- Select the approved model/provider, deployment endpoint, and data-processing
+  terms.
+- Define retention and deletion periods for prompts, traces, findings, and
+  audit metadata, and determine required data residency.
+- Confirm authoritative commerce invariants, service boundaries, event
+  guarantees, and payment/privacy rules.
+- Measure actual pull-request volume, peak concurrency, diff-size distribution,
+  and service-level objectives.
+- Confirm GitHub App permissions and the exact non-blocking shadow surface:
+  check summary, artifact, dashboard, or a combination.
+- Determine whether context must include SLOs, runbooks, service catalogs, or
+  incident records in addition to ADRs and API schemas.
+- Confirm near-term reviewed-repository languages beyond the initial scope.
+- Assign policy approval, quality adjudication, false-positive escalation, and
+  repository onboarding owners.
+- Establish the measured quality threshold required before enabling comments.
+
+## Rollout
+
+1. **Discovery and policy**: Select pilot repositories; confirm invariants,
+   approved model, privacy/retention rules, evaluation labels, and shadow
+   presentation.
+2. **Foundation**: Implement GitHub App authentication, event processing,
+   queue/workers, YAML validation, redaction, audit events, and non-blocking
+   result reporting.
+3. **Shadow pilot**: Evaluate selected teams and repositories without inline
+   comments; collect labels and tune rules and confidence thresholds.
+4. **Comment pilot**: Enable comments only for approved repositories after
+   security review and measured quality approval; provide opt-out and feedback.
+5. **Expansion**: Review quality metrics and incident feedback with platform,
+   security, product/domain, and delivery stakeholders before expanding scope.
+
+## Initial Pilot Acceptance Criteria
+
+- Webhook authenticity and installation/repository authorization are verified.
+- Reviews are pinned to a head SHA, deduplicated, and bounded by configured
+  limits.
+- YAML configuration is schema-validated, versioned, and fails safely with a
+  clear diagnostic.
+- Redaction precedes model calls; seeded-secret tests confirm no leakage to
+  model requests or ordinary logs.
+- Only the approved private model endpoint is used.
+- Findings pass schema, evidence, confidence, and changed-line validation.
+- Shadow mode posts no inline comments and does not block merges; comment mode
+  posts only actionable findings and avoids rerun duplicates.
+- Failures are observable and non-blocking; unsupported findings are never
+  fabricated when context or inference is unavailable.
+- Evaluation reports quality, false positives, valid-line anchoring, latency,
+  reliability, and reviewer feedback by category.
+- Security, privacy, and domain owners approve pilot configuration and
+  activation criteria.
