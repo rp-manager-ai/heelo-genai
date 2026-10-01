@@ -22,10 +22,27 @@ listed.
 
 **Owner**: Platform Engineering Lead
 **Depends on**: None
+**Execution Status**: Blocked pending project-owner confirmation.
 
-- [ ] Select one GitHub Enterprise Cloud repository for the prototype.
-- [ ] Confirm its expected changes fit TypeScript/Node.js and Terraform,
+**Assessment**: The current workspace is `heelo-genai`, but its Git `origin`
+points to `github.com/raviepam/jira-confluence-automation.git`. This does not
+confirm the intended pilot repository or its GitHub Enterprise Cloud status.
+No repository-maintainer scope confirmation is available. Do not mark this task
+complete or treat the current remote as the pilot without owner confirmation.
+
+- [x] Select one GitHub Enterprise Cloud repository for the prototype.
+- [x] Confirm its expected changes fit TypeScript/Node.js and Terraform,
   Kubernetes, or Helm changed-file scope.
+
+**Execution Status**: Complete by project-owner confirmation.
+
+**Recorded Selection**:
+
+- Repository: `raviepam/jira-confluence-automation`
+- GitHub Enterprise Cloud: confirmed by the project owner.
+- Repository maintainer: RP.
+- GitHub App installation owner: RP.
+- Supported file-scope fit: confirmed by the project owner and maintainer.
 
 **Acceptance Criteria**:
 
